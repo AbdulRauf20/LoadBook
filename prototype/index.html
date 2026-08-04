@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoadBook — Simple Mobile UI Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="assets/tailwind-config.js"></script>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body { background: #f7f8fa; }
+  .case-study-shell { max-width: 1400px; }
+  .phone-block { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .phone-caption { text-align: center; max-width: 340px; }
+</style>
+</head>
+<body class="font-sans text-ink">
+
+<div class="case-study-shell mx-auto px-6 md:px-10 py-12">
+
+  <!-- HERO -->
+  <header class="mb-14">
+    <div class="inline-flex items-center gap-2 bg-primary-bg text-primary-dark text-xs font-extrabold tracking-wide uppercase px-3 py-1.5 rounded-full mb-5">
+      One-Screen Mobile UI Prototype
+    </div>
+    <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-ink mb-4">LoadBook</h1>
+    <p class="text-lg md:text-xl text-ink-soft font-medium max-w-3xl leading-relaxed">
+      A digital version of the handwritten load-distribution notebook, built for
+      <span class="font-extrabold text-ink">Rabnawz</span>, a 45-year-old mobile-load distributor who manages
+      30&ndash;40 shops. No dashboards, no tabs, no analytics &mdash;
+      <span class="font-extrabold text-ink">one screen does almost everything.</span>
+    </p>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-9">
+      <div class="lb-card p-4">
+        <div class="text-xs font-extrabold text-ink-faint uppercase tracking-wide mb-1">Persona</div>
+        <div class="font-extrabold text-ink">Rabnawz, ~45</div>
+        <div class="text-sm text-ink-soft font-semibold mt-0.5">Basic smartphone user, comfortable with numbers</div>
+      </div>
+      <div class="lb-card p-4">
+        <div class="text-xs font-extrabold text-ink-faint uppercase tracking-wide mb-1">Design Rule</div>
+        <div class="font-extrabold text-ink">Do not overdesign</div>
+        <div class="text-sm text-ink-soft font-semibold mt-0.5">One main daily screen, nothing extra</div>
+      </div>
+      <div class="lb-card p-4">
+        <div class="text-xs font-extrabold text-ink-faint uppercase tracking-wide mb-1">Core Metaphor</div>
+        <div class="font-extrabold text-ink">To-do list / table</div>
+        <div class="text-sm text-ink-soft font-semibold mt-0.5">Checkbox, load sent, received &mdash; per shop</div>
+      </div>
+      <div class="lb-card p-4">
+        <div class="text-xs font-extrabold text-ink-faint uppercase tracking-wide mb-1">Stack</div>
+        <div class="font-extrabold text-ink">HTML / Tailwind / JS</div>
+        <div class="text-sm text-ink-soft font-semibold mt-0.5">Maps 1:1 to Flutter widgets</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- DESIGN SYSTEM -->
+  <section class="mb-16">
+    <h2 class="text-2xl font-extrabold text-ink mb-1">Design System</h2>
+    <p class="text-ink-soft font-medium mb-6">A tiny, consistent set of tokens &mdash; no gradients, no dark mode, no decoration for its own sake.</p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Colors -->
+      <div class="lb-card p-5">
+        <div class="text-sm font-extrabold text-ink-faint uppercase tracking-wide mb-4">Color Roles</div>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-3"><span class="w-9 h-9 rounded-lg bg-primary flex-none"></span><div><div class="font-extrabold text-sm">Primary accent</div><div class="text-xs text-ink-faint font-semibold">Buttons, links, focus</div></div></div>
+          <div class="flex items-center gap-3"><span class="w-9 h-9 rounded-lg bg-success flex-none"></span><div><div class="font-extrabold text-sm">Green — Paid</div><div class="text-xs text-ink-faint font-semibold">Fully received payments</div></div></div>
+          <div class="flex items-center gap-3"><span class="w-9 h-9 rounded-lg bg-warning flex-none"></span><div><div class="font-extrabold text-sm">Yellow/Orange — Partial</div><div class="text-xs text-ink-faint font-semibold">Part payment received</div></div></div>
+          <div class="flex items-center gap-3"><span class="w-9 h-9 rounded-lg bg-danger flex-none"></span><div><div class="font-extrabold text-sm">Red — Unpaid</div><div class="text-xs text-ink-faint font-semibold">Nothing received yet</div></div></div>
+        </div>
+      </div>
+
+      <!-- Checkbox + Buttons -->
+      <div class="lb-card p-5">
+        <div class="text-sm font-extrabold text-ink-faint uppercase tracking-wide mb-4">Checkbox &amp; Buttons</div>
+        <div class="flex items-center gap-4 mb-5">
+          <span class="lb-checkbox checked" id="checkboxSampleOn"></span>
+          <span class="lb-checkbox" id="checkboxSampleOff"></span>
+          <span class="text-sm font-semibold text-ink-soft">Tap to mark fully paid</span>
+        </div>
+        <div class="flex flex-col gap-2.5">
+          <button class="lb-btn lb-btn-whatsapp lb-btn-lg !py-2.5 text-sm" id="waSampleBtn">Send Reminders</button>
+          <button class="lb-btn lb-btn-outline-primary lb-btn-lg !py-2.5 text-sm" id="pdfSampleBtn">Download Daily Report</button>
+        </div>
+      </div>
+
+      <!-- Typography -->
+      <div class="lb-card p-5">
+        <div class="text-sm font-extrabold text-ink-faint uppercase tracking-wide mb-4">Typography &amp; Numbers</div>
+        <div class="text-2xl font-extrabold text-ink">Rs. 350,000</div>
+        <div class="text-xs font-bold text-ink-faint uppercase tracking-wide mt-0.5 mb-3">Large figures for money</div>
+        <div class="text-lg font-extrabold text-ink">Monday, 3 August</div>
+        <div class="text-xs font-bold text-ink-faint uppercase tracking-wide mt-0.5 mb-3">Headings</div>
+        <div class="text-sm font-semibold text-ink-soft">Body text stays large and high-contrast so it is comfortable to read quickly.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE ONE MAIN SCREEN -->
+  <section class="mb-16">
+    <h2 class="text-2xl font-extrabold text-ink mb-1">The Main Screen</h2>
+    <p class="text-ink-soft font-medium mb-8">Almost everything happens here: balance, today's shops, load sent, received, totals, reminders and the daily report.</p>
+
+    <div class="flex flex-wrap gap-12 justify-center md:justify-start">
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html" title="LoadBook — Main Screen"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">Today's Notebook Page</div><div class="text-sm text-ink-faint font-semibold mt-1">Two summary boxes, the shop checklist/table, daily totals, reminders &amp; report</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY INTERACTIONS -->
+  <section class="mb-10">
+    <h2 class="text-2xl font-extrabold text-ink mb-1">Key Interactions</h2>
+    <p class="text-ink-soft font-medium mb-8">The few small sheets/dialogs that appear on top of the one main screen &mdash; never a new page.</p>
+
+    <div class="flex flex-wrap gap-12 justify-center md:justify-start">
+
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html?modal=load" title="Load Sent — quick amounts"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">Load Sent — Quick Amounts</div><div class="text-sm text-ink-faint font-semibold mt-1">5K / 10K / 15K / 20K / 25K or Custom &mdash; no typing needed</div></div>
+      </div>
+
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html?modal=received" title="Received amount"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">Received Amount</div><div class="text-sm text-ink-faint font-semibold mt-1">Load / Received / Remaining always visible; partial payments supported</div></div>
+      </div>
+
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html?modal=addshop" title="Add Shop"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">+ Add Shop</div><div class="text-sm text-ink-faint font-semibold mt-1">Added once, then appears automatically in every future daily list</div></div>
+      </div>
+
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html?modal=editshop" title="Edit / Remove Shop"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">Edit / Remove Shop</div><div class="text-sm text-ink-faint font-semibold mt-1">Tap a shop's name to edit it, or remove it without losing history</div></div>
+      </div>
+
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html?modal=calendar" title="Calendar / previous days"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">Calendar</div><div class="text-sm text-ink-faint font-semibold mt-1">Jump to any previous day from the date arrows or calendar icon</div></div>
+      </div>
+
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html?modal=reminders" title="Send reminders confirmation"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">Send Reminders</div><div class="text-sm text-ink-faint font-semibold mt-1">One confirmation before messaging every shop with a balance due</div></div>
+      </div>
+
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html?modal=nointernet" title="No Internet"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">No Internet</div><div class="text-sm text-ink-faint font-semibold mt-1">Plain language, single OK &mdash; the notebook itself stays usable offline</div></div>
+      </div>
+
+      <div class="phone-block">
+        <div class="lb-phone"><div class="lb-phone-notch"></div><div class="lb-phone-screen"><iframe src="screens/main.html?modal=report" title="Daily report preview"></iframe></div></div>
+        <div class="phone-caption"><div class="font-extrabold text-ink">Daily Report</div><div class="text-sm text-ink-faint font-semibold mt-1">Preview totals, then download as PDF or share on WhatsApp</div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="text-center text-sm font-semibold text-ink-faint py-10 border-t border-line mt-4">
+    LoadBook Prototype &mdash; built with HTML, Tailwind CSS &amp; JavaScript, structured for a 1:1 Flutter rebuild.
+  </footer>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+  document.getElementById('checkboxSampleOn').innerHTML = icon('check');
+  document.getElementById('waSampleBtn').innerHTML = icon('whatsapp') + ' Send Reminders';
+  document.getElementById('pdfSampleBtn').innerHTML = icon('fileText') + ' Download Daily Report';
+</script>
+</body>
+</html>

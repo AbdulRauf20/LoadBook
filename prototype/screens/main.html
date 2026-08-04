@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LoadBook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="../assets/tailwind-config.js"></script>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="font-sans">
+
+<div class="lb-screen">
+
+  <!-- TOP BAR: brand + date navigation -->
+  <div class="lb-topbar">
+    <div class="lb-brand">LOADBOOK</div>
+    <div class="lb-date-nav">
+      <button class="lb-icon-btn" id="prevDayBtn" aria-label="Previous day"></button>
+      <div class="lb-date-display" id="dateDisplay"></div>
+      <button class="lb-icon-btn" id="nextDayBtn" aria-label="Next day"></button>
+    </div>
+  </div>
+
+  <!-- SCROLLABLE CONTENT -->
+  <div class="lb-scroll">
+    <div class="p-4">
+
+      <!-- TOP SUMMARY: exactly two boxes -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="lb-summary-box">
+          <div class="lb-summary-label">Available Balance</div>
+          <div class="lb-summary-value" id="availableBalanceVal">Rs. 0</div>
+        </div>
+        <div class="lb-summary-box">
+          <div class="lb-summary-label">Today's Sales</div>
+          <div class="lb-summary-value" id="todaysSalesVal">Rs. 0</div>
+        </div>
+      </div>
+
+      <!-- CUSTOMER LIST (to-do list / table) -->
+      <div class="flex items-center justify-between mb-2 px-0.5">
+        <div class="text-sm font-extrabold text-ink-soft uppercase tracking-wide">Today's Shops</div>
+        <div class="text-sm font-bold text-ink-faint" id="shopCountLabel"></div>
+      </div>
+
+      <div class="lb-table-wrap" style="max-height:none;">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th class="lb-col-check">✓</th>
+              <th class="lb-col-name">Shop</th>
+              <th>Load Sent</th>
+              <th>Received</th>
+            </tr>
+          </thead>
+          <tbody id="customerRows"></tbody>
+          <tfoot>
+            <tr class="lb-addshop-row">
+              <td colspan="4">
+                <button class="lb-addshop-btn" id="addShopBtn"></button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- DAILY SUMMARY (compact, no dashboard) -->
+      <div class="text-sm font-extrabold text-ink-soft uppercase tracking-wide mt-5 mb-2 px-0.5">Today's Totals</div>
+      <div class="lb-daily-summary">
+        <div class="lb-stat"><div class="lb-stat-label">Load Sent</div><div class="lb-stat-value" id="totalLoadVal">—</div></div>
+        <div class="lb-stat"><div class="lb-stat-label">Received</div><div class="lb-stat-value text-success" id="totalReceivedVal">—</div></div>
+        <div class="lb-stat"><div class="lb-stat-label">Remaining</div><div class="lb-stat-value text-danger" id="totalRemainingVal">—</div></div>
+        <div class="lb-stat"><div class="lb-stat-label">Paid</div><div class="lb-stat-value text-success" id="paidCountVal">—</div></div>
+        <div class="lb-stat"><div class="lb-stat-label">Pending</div><div class="lb-stat-value text-danger" id="pendingCountVal">—</div></div>
+        <div class="lb-stat"><div class="lb-stat-label">Total Shops</div><div class="lb-stat-value" id="shopTotalVal">—</div></div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="flex flex-col gap-2.5 mt-5 pb-6">
+        <button class="lb-btn lb-btn-whatsapp lb-btn-lg" id="sendRemindersBtn"></button>
+        <button class="lb-btn lb-btn-outline-primary lb-btn-lg" id="downloadReportBtn"></button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  let currentDate = params.get('date') || LB.todayKey();
+
+  function goToDate(key) {
+    location.href = `main.html?date=${key}`;
+  }
+
+  function renderHeader() {
+    document.getElementById('prevDayBtn').innerHTML = icon('arrowLeft');
+    document.getElementById('nextDayBtn').innerHTML = icon('arrowRight');
+    document.getElementById('dateDisplay').innerHTML = `<span>${LB.humanDate(currentDate)}</span>${icon('calendar')}`;
+    document.getElementById('nextDayBtn').disabled = LB.isFuture(LB.addDays(currentDate, 1));
+    document.getElementById('nextDayBtn').style.opacity = document.getElementById('nextDayBtn').disabled ? '0.4' : '1';
+  }
+
+  function renderSummary() {
+    const available = LB.availableBalance(currentDate);
+    const { totals, count } = LB.dayData(currentDate);
+    document.getElementById('availableBalanceVal').textContent = LB.formatCurrency(available);
+    document.getElementById('todaysSalesVal').textContent = LB.formatCurrency(totals.load);
+    document.getElementById('shopCountLabel').textContent = `${count} shops`;
+    document.getElementById('totalLoadVal').textContent = LB.formatCurrency(totals.load);
+    document.getElementById('totalReceivedVal').textContent = LB.formatCurrency(totals.received);
+    document.getElementById('totalRemainingVal').textContent = LB.formatCurrency(totals.remaining);
+    document.getElementById('paidCountVal').textContent = totals.paid;
+    document.getElementById('pendingCountVal').textContent = totals.partial + totals.pending;
+    document.getElementById('shopTotalVal').textContent = count;
+  }
+
+  function renderRows() {
+    const { rows } = LB.dayData(currentDate);
+    document.getElementById('customerRows').innerHTML = rows.map(r => {
+      const checked = r.status === 'PAID';
+      const loadZero = r.load === 0 ? 'lb-cell-zero' : '';
+      const receivedFull = checked ? 'received-full' : '';
+      return `
+        <tr class="${checked ? 'lb-row-paid' : ''}">
+          <td class="lb-col-check">
+            <span class="lb-checkbox ${checked ? 'checked' : ''}" data-action="toggle" data-id="${r.id}">${checked ? ICONS.check : ''}</span>
+          </td>
+          <td class="lb-col-name" data-action="edit" data-id="${r.id}">
+            <div class="lb-shop-name">${r.name}</div>
+            <div class="lb-shop-phone">${r.phone}</div>
+          </td>
+          <td>
+            <button class="lb-cell-btn ${loadZero}" data-action="load" data-id="${r.id}">
+              <span class="lb-cell-value">${LB.formatCurrency(r.load)}</span>
+            </button>
+          </td>
+          <td>
+            <button class="lb-cell-btn ${receivedFull}" data-action="received" data-id="${r.id}">
+              <span class="lb-cell-value">${LB.formatCurrency(r.received)}</span>
+              ${r.remaining > 0 ? `<span class="lb-cell-remaining">Remaining ${LB.formatCurrency(r.remaining)}</span>` : ''}
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderActions() {
+    document.getElementById('addShopBtn').innerHTML = `${icon('plus')}<span>Add Shop</span>`;
+    document.getElementById('sendRemindersBtn').innerHTML = `${icon('whatsapp')}<span>Send Reminders</span>`;
+    document.getElementById('downloadReportBtn').innerHTML = `${icon('fileText')}<span>Download Daily Report</span>`;
+  }
+
+  function refresh() {
+    renderHeader();
+    renderSummary();
+    renderRows();
+    renderActions();
+    bindRowEvents();
+  }
+
+  function toggleCheckbox(id) {
+    const entry = LB.getEntry(id, currentDate);
+    const c = LB.getCustomer(id);
+    if (entry.load <= 0) {
+      Modal.toast(`Send load to ${c.name} first`, 'warning');
+      return;
+    }
+    if (entry.received >= entry.load) {
+      LB.undoFullyReceived(id, currentDate);
+      Modal.toast(`Reset ${c.name}'s received amount`, 'check');
+    } else {
+      LB.markFullyReceived(id, currentDate);
+      Modal.toast(`${c.name} marked as fully paid`, 'check');
+    }
+    refresh();
+  }
+
+  function bindRowEvents() {
+    document.getElementById('customerRows').querySelectorAll('[data-action]').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.dataset.id;
+        const action = el.dataset.action;
+        if (action === 'toggle') toggleCheckbox(id);
+        else if (action === 'load') openLoadSheet(id, currentDate, refresh);
+        else if (action === 'received') openReceivedSheet(id, currentDate, refresh);
+        else if (action === 'edit') openEditShopSheet(id, refresh);
+      });
+    });
+  }
+
+  document.getElementById('prevDayBtn').addEventListener('click', () => goToDate(LB.addDays(currentDate, -1)));
+  document.getElementById('nextDayBtn').addEventListener('click', () => {
+    const next = LB.addDays(currentDate, 1);
+    if (!LB.isFuture(next)) goToDate(next);
+  });
+  document.getElementById('dateDisplay').addEventListener('click', () => {
+    openCalendarSheet(currentDate, (picked) => goToDate(picked));
+  });
+  document.getElementById('addShopBtn').addEventListener('click', () => openAddShopSheet(refresh));
+  document.getElementById('sendRemindersBtn').addEventListener('click', () => {
+    const { rows } = LB.dayData(currentDate);
+    const pending = rows.filter(r => r.load > r.received);
+    confirmBulkReminder(pending, currentDate);
+  });
+  document.getElementById('downloadReportBtn').addEventListener('click', () => openReportPreview(currentDate));
+
+  refresh();
+
+  /* ---- Presentation-only: open a specific modal state via ?modal= for screenshots ---- */
+  (function handlePresentationModal() {
+    const modal = params.get('modal');
+    if (!modal) return;
+    const sampleId = params.get('id') || LB.getCustomers()[1].id;
+    setTimeout(() => {
+      if (modal === 'load') openLoadSheet(sampleId, currentDate, refresh);
+      else if (modal === 'received') openReceivedSheet(sampleId, currentDate, refresh);
+      else if (modal === 'addshop') openAddShopSheet(refresh);
+      else if (modal === 'editshop') openEditShopSheet(sampleId, refresh);
+      else if (modal === 'calendar') openCalendarSheet(currentDate, (picked) => goToDate(picked));
+      else if (modal === 'reminders') {
+        const { rows } = LB.dayData(currentDate);
+        confirmBulkReminder(rows.filter(r => r.load > r.received), currentDate);
+      } else if (modal === 'nointernet') {
+        showNoInternetDialog();
+      } else if (modal === 'report') {
+        openReportPreview(currentDate);
+      }
+    }, 50);
+  })();
+</script>
+</body>
+</html>
