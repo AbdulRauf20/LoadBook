@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'database_tables.dart';
 
-part "database.g.dart";
+part 'database.g.dart';
 
 @DriftDatabase(
   tables: [
@@ -20,6 +20,8 @@ part "database.g.dart";
 )
 class LoadBookDatabase extends _$LoadBookDatabase {
   LoadBookDatabase() : super(_openConnection());
+
+  LoadBookDatabase.test() : super(NativeDatabase.memory());
 
   @override
   int get schemaVersion => 1;
