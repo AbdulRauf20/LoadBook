@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loadbook/features/customers/screens/add_customer_screen.dart';
 
 import '../../../app/theme.dart';
 import '../../../data/local/database.dart';
@@ -47,6 +48,22 @@ class _DailyScreenState extends State<DailyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
+
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final added = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => AddCustomerScreen(database: widget.database),
+            ),
+          );
+
+          if (added == true) {
+            await controller.loadDay(controller.selectedDate);
+          }
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Customer'),
+      ),
       body: SafeArea(
         child: Column(
           children: [
