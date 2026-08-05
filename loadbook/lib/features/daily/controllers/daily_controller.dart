@@ -56,7 +56,7 @@ class DailyController extends ChangeNotifier {
       return existing;
     }
 
-    final id = await transactionRepository.createDailyTransaction(
+    await transactionRepository.createDailyTransaction(
       customerId: customerId,
       date: selectedDate,
     );
