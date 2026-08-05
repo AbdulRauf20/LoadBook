@@ -9,43 +9,42 @@ class SummaryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<int>>(
-      future: _calculateTotals(),
+    return FutureBuilder(
+      future: controller.getDailySummary(),
       builder: (context, snapshot) {
-        final totalLoad = snapshot.data?[0] ?? 0;
-        final totalReceived = snapshot.data?[1] ?? 0;
+        if (!snapshot.hasData) {
+          return const SizedBox(
+            height: 100,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final summary = snapshot.data!;
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               Expanded(
-                child: _SummaryCard(title: 'Today\'s Sell', amount: totalLoad),
+                child: _SummaryCard(
+                  title: 'Today\'s Sell',
+                  amount: summary.totalLoadSent,
+                ),
               ),
 
               const SizedBox(width: 12),
 
               Expanded(
-                child: _SummaryCard(title: 'Received', amount: totalReceived),
+                child: _SummaryCard(
+                  title: 'Received',
+                  amount: summary.totalReceived,
+                ),
               ),
             ],
           ),
         );
       },
     );
-  }
-
-  Future<List<int>> _calculateTotals() async {
-    int totalLoad = 0;
-    int totalReceived = 0;
-
-    for (final transaction in controller.transactions) {
-      totalLoad += transaction.loadSent;
-
-      totalReceived += await controller.getAmountReceived(transaction.id);
-    }
-
-    return [totalLoad, totalReceived];
   }
 }
 
@@ -64,9 +63,11 @@ class _SummaryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: const TextStyle(fontSize: 14)),
+
             const SizedBox(height: 8),
+
             Text(
-              'Rs. ${amount.toString()}',
+              'Rs. $amount',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
           ],

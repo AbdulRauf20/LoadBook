@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:loadbook/models/daily_summary.dart';
 
 import '../../../data/local/database.dart';
 import '../../../data/repositories/customer_repository.dart';
@@ -124,5 +125,36 @@ class DailyController extends ChangeNotifier {
 
   Future<void> previousDay() async {
     await loadDay(selectedDate.subtract(const Duration(days: 1)));
+  }
+
+  Future<DailySummary> getDailySummary() async {
+    int totalLoadSent = 0;
+    int totalReceived = 0;
+    int completedCustomers = 0;
+    int pendingCustomers = 0;
+
+    for (final transaction in transactions) {
+      totalLoadSent += transaction.loadSent;
+
+      final received = await getAmountReceived(transaction.id);
+
+      totalReceived += received;
+
+      final remaining = transaction.loadSent - received;
+
+      if (transaction.loadSent > 0 && remaining <= 0) {
+        completedCustomers++;
+      } else if (transaction.loadSent > 0) {
+        pendingCustomers++;
+      }
+    }
+
+    return DailySummary(
+      totalLoadSent: totalLoadSent,
+      totalReceived: totalReceived,
+      totalRemaining: (totalLoadSent - totalReceived).clamp(0, totalLoadSent),
+      completedCustomers: completedCustomers,
+      pendingCustomers: pendingCustomers,
+    );
   }
 }
