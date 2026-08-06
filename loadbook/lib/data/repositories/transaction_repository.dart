@@ -63,4 +63,16 @@ class TransactionRepository {
         ))
         .get();
   }
+
+  Future<List<DailyTransaction>> getTransactionsForCustomer(int customerId) {
+    return (database.select(database.dailyTransactions)
+          ..where((t) => t.customerId.equals(customerId))
+          ..orderBy([
+            (t) => OrderingTerm(
+              expression: t.transactionDate,
+              mode: OrderingMode.desc,
+            ),
+          ]))
+        .get();
+  }
 }

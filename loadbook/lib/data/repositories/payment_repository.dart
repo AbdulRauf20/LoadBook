@@ -39,4 +39,18 @@ class PaymentRepository {
 
     return payments.fold<int>(0, (total, payment) => total + payment.amount);
   }
+
+  Future<int> getTotalReceivedForCustomer(int customerId) async {
+    final transactions = await (database.select(
+      database.dailyTransactions,
+    )..where((t) => t.customerId.equals(customerId))).get();
+
+    int total = 0;
+
+    for (final transaction in transactions) {
+      total += await getTotalReceived(transaction.id);
+    }
+
+    return total;
+  }
 }

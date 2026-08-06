@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loadbook/features/customers/screens/add_customer_screen.dart';
-
+import '../widgets/balance_card.dart';
 import '../../../app/theme.dart';
 import '../../../data/local/database.dart';
 import '../controllers/daily_controller.dart';
@@ -74,6 +74,11 @@ class _DailyScreenState extends State<DailyScreen> {
             ),
 
             SummaryCards(controller: controller),
+
+            BalanceCard(
+              openingBalance: controller.openingBalance,
+              closingBalance: controller.closingBalance,
+            ),
 
             Expanded(child: CustomerTable(controller: controller)),
           ],
