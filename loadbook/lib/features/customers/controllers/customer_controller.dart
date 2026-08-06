@@ -78,4 +78,42 @@ class CustomerController extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> updateCustomer({
+    required int id,
+    required String name,
+    required String phoneNumber,
+    required int monthlySales,
+  }) async {
+    if (name.trim().isEmpty) {
+      errorMessage = 'Customer name is required.';
+      notifyListeners();
+      return false;
+    }
+
+    if (phoneNumber.trim().isEmpty) {
+      errorMessage = 'Phone number is required.';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      final success = await repository.updateCustomer(
+        id: id,
+        name: name.trim(),
+        phoneNumber: phoneNumber.trim(),
+        monthlySales: monthlySales,
+      );
+
+      if (success) {
+        await loadCustomers();
+      }
+
+      return success;
+    } catch (error) {
+      errorMessage = error.toString();
+      notifyListeners();
+      return false;
+    }
+  }
 }

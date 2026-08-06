@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:loadbook/features/customers/screens/customer_details_screen.dart';
+import 'package:loadbook/models/customer_daily_data.dart';
 
-import '../../../data/local/database.dart';
 import '../controllers/daily_controller.dart';
 
 class CustomerRow extends StatefulWidget {
-  final Customer customer;
-  final DailyTransaction? transaction;
+  final CustomerDailyData customerData;
   final DailyController controller;
 
   const CustomerRow({
     super.key,
-    required this.customer,
-    required this.transaction,
+    required this.customerData,
     required this.controller,
   });
 
@@ -33,24 +32,16 @@ class _CustomerRowState extends State<CustomerRow> {
   void didUpdateWidget(covariant CustomerRow oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.transaction?.id != widget.transaction?.id) {
+    if (oldWidget.customerData.transactionId !=
+        widget.customerData.transactionId) {
       _loadReceived();
     }
   }
 
   Future<void> _loadReceived() async {
-    final transaction = widget.transaction;
-
-    if (transaction == null) {
-      if (mounted) {
-        setState(() {
-          received = 0;
-        });
-      }
-      return;
-    }
-
-    final amount = await widget.controller.getAmountReceived(transaction.id);
+    final amount = await widget.controller.getAmountReceived(
+      widget.customerData.transactionId,
+    );
 
     if (mounted) {
       setState(() {
@@ -59,7 +50,7 @@ class _CustomerRowState extends State<CustomerRow> {
     }
   }
 
-  int get loadSent => widget.transaction?.loadSent ?? 0;
+  int get loadSent => widget.customerData.loadSent;
 
   int get remaining {
     final value = loadSent - received;
@@ -74,7 +65,7 @@ class _CustomerRowState extends State<CustomerRow> {
     });
 
     await widget.controller.setLoadAmount(
-      customerId: widget.customer.id,
+      customerId: widget.customerData.customerId,
       amount: amount,
     );
 
@@ -149,7 +140,7 @@ class _CustomerRowState extends State<CustomerRow> {
     });
 
     await widget.controller.addPayment(
-      customerId: widget.customer.id,
+      customerId: widget.customerData.customerId,
       amount: amount,
     );
 
@@ -189,27 +180,94 @@ class _CustomerRowState extends State<CustomerRow> {
                       : null,
                 ),
 
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.customer.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.customer.phoneNumber,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ),
+Expanded(
+  flex: 3,
+  child: Row(
+    children: [
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () async {
+                final customer = await widget.controller.customerRepository
+                    .getCustomerById(widget.customerData.customerId);
+                if (customer == null || !mounted) return;
 
+                final updated = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CustomerDetailsScreen(
+                      database: widget.controller.database,
+                      customer: customer,
+                    ),
+                  ),
+                );
+
+                if (updated == true && mounted) {
+                  await widget.controller.loadDay(
+                    widget.controller.selectedDate,
+                  );
+                }
+              },
+              child: Text(
+                widget.customerData.customerName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            Text(
+              widget.customerData.phoneNumber,
+              style: const TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+      ),
+
+      IconButton(
+        icon: const Icon(Icons.delete_outline),
+        tooltip: 'Deactivate Customer',
+        onPressed: () async {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Deactivate Customer'),
+              content: const Text(
+                'This customer will no longer appear in the daily list.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Deactivate'),
+                ),
+              ],
+            ),
+          );
+
+          if (confirm != true) return;
+
+          await widget.controller.customerRepository.deactivateCustomer(
+            widget.customerData.customerId,
+          );
+
+          await widget.controller.loadDay(
+            widget.controller.selectedDate,
+          );
+        },
+      ),
+    ],
+  ),
+),
                 Expanded(
                   child: _AmountColumn(title: 'Sent', amount: loadSent),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:loadbook/models/customer_daily_data.dart';
 import 'package:loadbook/models/daily_summary.dart';
 
 import '../../../data/local/database.dart';
@@ -7,11 +8,12 @@ import '../../../data/repositories/payment_repository.dart';
 import '../../../data/repositories/transaction_repository.dart';
 
 class DailyController extends ChangeNotifier {
+  final LoadBookDatabase database;
   final CustomerRepository customerRepository;
   final TransactionRepository transactionRepository;
   final PaymentRepository paymentRepository;
 
-  DailyController(LoadBookDatabase database)
+  DailyController(this.database)
     : customerRepository = CustomerRepository(database),
       transactionRepository = TransactionRepository(database),
       paymentRepository = PaymentRepository(database);
@@ -20,6 +22,7 @@ class DailyController extends ChangeNotifier {
 
   List<Customer> customers = [];
   List<DailyTransaction> transactions = [];
+  List<CustomerDailyData> customerDailyData = [];
 
   bool isLoading = false;
 
@@ -39,6 +42,7 @@ class DailyController extends ChangeNotifier {
       transactions = await transactionRepository.getTransactionsForDate(
         selectedDate,
       );
+      await _buildCustomerDailyData();
     } catch (error) {
       errorMessage = error.toString();
     } finally {
@@ -156,5 +160,33 @@ class DailyController extends ChangeNotifier {
       completedCustomers: completedCustomers,
       pendingCustomers: pendingCustomers,
     );
+  }
+
+  Future<void> _buildCustomerDailyData() async {
+    customerDailyData.clear();
+
+    for (final customer in customers) {
+      final transaction = await getOrCreateTransaction(customer.id);
+
+      final amountReceived = await getAmountReceived(transaction.id);
+
+      final remaining = (transaction.loadSent - amountReceived).clamp(
+        0,
+        transaction.loadSent,
+      );
+
+      customerDailyData.add(
+        CustomerDailyData(
+          customerId: customer.id,
+          transactionId: transaction.id,
+          customerName: customer.name,
+          phoneNumber: customer.phoneNumber,
+          loadSent: transaction.loadSent,
+          amountReceived: amountReceived,
+          remaining: remaining,
+          isCompleted: transaction.loadSent > 0 && remaining == 0,
+        ),
+      );
+    }
   }
 }

@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
 
 class CustomerForm extends StatefulWidget {
+  final String? initialName;
+  final String? initialPhoneNumber;
+  final int? initialMonthlySales;
+
   final Future<bool> Function({
     required String name,
     required String phoneNumber,
     required int monthlySales,
-  })
-  onSave;
+  }) onSave;
 
-  const CustomerForm({super.key, required this.onSave});
+  const CustomerForm({
+    super.key,
+    required this.onSave,
+    this.initialName,
+    this.initialPhoneNumber,
+    this.initialMonthlySales,
+  });
 
   @override
   State<CustomerForm> createState() => _CustomerFormState();
 }
+
 
 class _CustomerFormState extends State<CustomerForm> {
   final _formKey = GlobalKey<FormState>();
@@ -23,6 +33,17 @@ class _CustomerFormState extends State<CustomerForm> {
 
   bool _isSaving = false;
 
+@override
+void initState() {
+  super.initState();
+
+  _nameController.text = widget.initialName ?? '';
+
+  _phoneController.text = widget.initialPhoneNumber ?? '';
+
+  _monthlySalesController.text =
+      (widget.initialMonthlySales ?? 0).toString();
+}
   @override
   void dispose() {
     _nameController.dispose();

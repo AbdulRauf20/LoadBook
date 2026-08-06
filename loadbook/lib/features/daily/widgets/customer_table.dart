@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import '../../../data/local/database.dart';
 import '../controllers/daily_controller.dart';
 import 'customer_row.dart';
 
@@ -19,32 +17,25 @@ class CustomerTable extends StatelessWidget {
       return Center(child: Text(controller.errorMessage!));
     }
 
-    if (controller.customers.isEmpty) {
+    if (controller.customerDailyData.isEmpty) {
       return const Center(
         child: Text('No customers added yet.', style: TextStyle(fontSize: 18)),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: controller.customers.length,
-      itemBuilder: (context, index) {
-        final customer = controller.customers[index];
-
-        final matchingTransactions = controller.transactions.where(
-          (transaction) => transaction.customerId == customer.id,
-        );
-
-        final DailyTransaction? transaction = matchingTransactions.isEmpty
-            ? null
-            : matchingTransactions.first;
-
-        return CustomerRow(
-          customer: customer,
-          transaction: transaction,
-          controller: controller,
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: () => controller.loadDay(controller.selectedDate),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        itemCount: controller.customerDailyData.length,
+        itemBuilder: (context, index) {
+          return CustomerRow(
+            customerData: controller.customerDailyData[index],
+            controller: controller,
+          );
+        },
+      ),
     );
   }
 }

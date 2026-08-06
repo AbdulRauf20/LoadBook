@@ -37,12 +37,38 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         padding: const EdgeInsets.all(20),
         child: CustomerForm(
           onSave:
-              ({required name, required phoneNumber, required monthlySales}) {
-                return controller.addCustomer(
+              ({
+                required name,
+                required phoneNumber,
+                required monthlySales,
+              }) async {
+                final success = await controller.addCustomer(
                   name: name,
                   phoneNumber: phoneNumber,
                   monthlySales: monthlySales,
                 );
+
+                if (!mounted) return success;
+
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Customer added successfully'),
+                    ),
+                  );
+
+                  Navigator.pop(context, true);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        controller.errorMessage ?? 'Unable to add customer.',
+                      ),
+                    ),
+                  );
+                }
+
+                return success;
               },
         ),
       ),
