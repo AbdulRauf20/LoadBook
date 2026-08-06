@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:loadbook/data/repositories/daily_balance_repository.dart';
 import 'package:loadbook/models/customer_daily_data.dart';
 import 'package:loadbook/models/daily_summary.dart';
 
@@ -12,13 +13,17 @@ class DailyController extends ChangeNotifier {
   final CustomerRepository customerRepository;
   final TransactionRepository transactionRepository;
   final PaymentRepository paymentRepository;
+  final DailyBalanceRepository dailyBalanceRepository;
 
   DailyController(this.database)
     : customerRepository = CustomerRepository(database),
       transactionRepository = TransactionRepository(database),
-      paymentRepository = PaymentRepository(database);
+      paymentRepository = PaymentRepository(database),
+      dailyBalanceRepository = DailyBalanceRepository(database);
 
   DateTime selectedDate = DateTime.now();
+  int openingBalance = 0;
+  int closingBalance = 0;
 
   List<Customer> customers = [];
   List<DailyTransaction> transactions = [];
@@ -42,6 +47,7 @@ class DailyController extends ChangeNotifier {
       transactions = await transactionRepository.getTransactionsForDate(
         selectedDate,
       );
+      await _loadDailyBalance();
       await _buildCustomerDailyData();
     } catch (error) {
       errorMessage = error.toString();
@@ -89,6 +95,7 @@ class DailyController extends ChangeNotifier {
       loadAmount: amount,
     );
 
+    await _updateClosingBalance();
     await loadDay(selectedDate);
   }
 
@@ -108,6 +115,7 @@ class DailyController extends ChangeNotifier {
       paymentDate: DateTime.now(),
     );
 
+    await _updateClosingBalance();
     await loadDay(selectedDate);
   }
 
@@ -159,6 +167,37 @@ class DailyController extends ChangeNotifier {
       totalRemaining: (totalLoadSent - totalReceived).clamp(0, totalLoadSent),
       completedCustomers: completedCustomers,
       pendingCustomers: pendingCustomers,
+    );
+  }
+
+  Future<void> _loadDailyBalance() async {
+    var balance = await dailyBalanceRepository.getBalanceForDate(selectedDate);
+
+    if (balance == null) {
+      final previousClosing = await dailyBalanceRepository
+          .getPreviousClosingBalance(selectedDate);
+
+      await dailyBalanceRepository.createDailyBalance(
+        date: selectedDate,
+        openingBalance: previousClosing,
+      );
+
+      balance = await dailyBalanceRepository.getBalanceForDate(selectedDate);
+    }
+
+    openingBalance = balance!.openingBalance;
+    closingBalance = balance.closingBalance;
+  }
+
+  Future<void> _updateClosingBalance() async {
+    final summary = await getDailySummary();
+
+    closingBalance =
+        openingBalance + summary.totalReceived - summary.totalLoadSent;
+
+    await dailyBalanceRepository.updateClosingBalance(
+      date: selectedDate,
+      closingBalance: closingBalance,
     );
   }
 
