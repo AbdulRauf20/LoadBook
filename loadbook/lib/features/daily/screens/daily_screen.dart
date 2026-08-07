@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loadbook/core/services/pdf_service.dart';
 import 'package:loadbook/features/customers/screens/add_customer_screen.dart';
 import '../widgets/balance_card.dart';
 import '../../../app/theme.dart';
@@ -18,6 +19,7 @@ class DailyScreen extends StatefulWidget {
 }
 
 class _DailyScreenState extends State<DailyScreen> {
+  final pdfService = PdfService();
   late final DailyController controller;
 
   @override
@@ -48,6 +50,26 @@ class _DailyScreenState extends State<DailyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
+
+      appBar: AppBar(
+        title: const Text('LoadBook'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: 'Download Report',
+            onPressed: () async {
+              final summary = await controller.getDailySummary();
+
+              await pdfService.generateDailyReport(
+                businessName: 'LoadBook',
+                date: controller.selectedDate,
+                customers: controller.customerDailyData,
+                summary: summary,
+              );
+            },
+          ),
+        ],
+      ),
 
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
