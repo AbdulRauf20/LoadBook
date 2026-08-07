@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loadbook/core/services/whatsapp_service.dart';
 import 'package:loadbook/features/customers/screens/customer_details_screen.dart';
 import 'package:loadbook/models/customer_daily_data.dart';
 
@@ -21,6 +22,8 @@ class CustomerRow extends StatefulWidget {
 class _CustomerRowState extends State<CustomerRow> {
   int received = 0;
   bool isLoading = false;
+
+  final WhatsAppService whatsappService = WhatsAppService();
 
   @override
   void initState() {
@@ -180,94 +183,123 @@ class _CustomerRowState extends State<CustomerRow> {
                       : null,
                 ),
 
-Expanded(
-  flex: 3,
-  child: Row(
-    children: [
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: () async {
-                final customer = await widget.controller.customerRepository
-                    .getCustomerById(widget.customerData.customerId);
-                if (customer == null || !mounted) return;
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                final customer = await widget
+                                    .controller
+                                    .customerRepository
+                                    .getCustomerById(
+                                      widget.customerData.customerId,
+                                    );
+                                if (customer == null || !mounted) return;
 
-                final updated = await Navigator.push<bool>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => CustomerDetailsScreen(
-                      database: widget.controller.database,
-                      customer: customer,
-                    ),
+                                final updated = await Navigator.push<bool>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CustomerDetailsScreen(
+                                      database: widget.controller.database,
+                                      customer: customer,
+                                    ),
+                                  ),
+                                );
+
+                                if (updated == true && mounted) {
+                                  await widget.controller.loadDay(
+                                    widget.controller.selectedDate,
+                                  );
+                                }
+                              },
+                              child: Text(
+                                widget.customerData.customerName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    widget.customerData.phoneNumber,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.message,
+                                    color: Colors.green,
+                                    size: 20,
+                                  ),
+                                  tooltip: 'Send WhatsApp Reminder',
+                                  onPressed: () {
+                                    whatsappService.sendReminder(
+                                      phone: widget.customerData.phoneNumber,
+                                      customerName:
+                                          widget.customerData.customerName,
+                                      remainingBalance: remaining,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        tooltip: 'Deactivate Customer',
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Deactivate Customer'),
+                              content: const Text(
+                                'This customer will no longer appear in the daily list.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Deactivate'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm != true) return;
+
+                          await widget.controller.customerRepository
+                              .deactivateCustomer(
+                                widget.customerData.customerId,
+                              );
+
+                          await widget.controller.loadDay(
+                            widget.controller.selectedDate,
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                );
-
-                if (updated == true && mounted) {
-                  await widget.controller.loadDay(
-                    widget.controller.selectedDate,
-                  );
-                }
-              },
-              child: Text(
-                widget.customerData.customerName,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 4),
-
-            Text(
-              widget.customerData.phoneNumber,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ],
-        ),
-      ),
-
-      IconButton(
-        icon: const Icon(Icons.delete_outline),
-        tooltip: 'Deactivate Customer',
-        onPressed: () async {
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('Deactivate Customer'),
-              content: const Text(
-                'This customer will no longer appear in the daily list.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Deactivate'),
-                ),
-              ],
-            ),
-          );
-
-          if (confirm != true) return;
-
-          await widget.controller.customerRepository.deactivateCustomer(
-            widget.customerData.customerId,
-          );
-
-          await widget.controller.loadDay(
-            widget.controller.selectedDate,
-          );
-        },
-      ),
-    ],
-  ),
-),
                 Expanded(
                   child: _AmountColumn(title: 'Sent', amount: loadSent),
                 ),

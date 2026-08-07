@@ -4,22 +4,32 @@ class WhatsAppService {
   Future<void> sendReminder({
     required String phone,
     required String customerName,
-    required int balance,
+    required int remainingBalance,
   }) async {
+    String phoneNumber = phone.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (phoneNumber.startsWith('0')) {
+      phoneNumber = '92${phoneNumber.substring(1)}';
+    } else if (!phoneNumber.startsWith('92')) {
+      phoneNumber = '92$phoneNumber';
+    }
     final message =
-        'Assalam-o-Alaikum $customerName,\n\n'
-        'Your remaining balance is Rs. $balance.\n'
-        'Kindly clear your payment.\n\n'
-        'Thank you.';
+        '''
+Assalam-o-Alaikum $customerName,
 
-    final phoneNumber = phone.replaceAll('+', '');
+Your remaining balance is Rs. $remainingBalance.
 
-    final uri = Uri.parse(
+Please clear your payment when possible.
+
+Thank you.
+''';
+
+    final url = Uri.parse(
       'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}',
     );
 
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     }
   }
 }
