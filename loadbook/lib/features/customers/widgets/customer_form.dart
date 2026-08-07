@@ -9,7 +9,8 @@ class CustomerForm extends StatefulWidget {
     required String name,
     required String phoneNumber,
     required int monthlySales,
-  }) onSave;
+  })
+  onSave;
 
   const CustomerForm({
     super.key,
@@ -23,7 +24,6 @@ class CustomerForm extends StatefulWidget {
   State<CustomerForm> createState() => _CustomerFormState();
 }
 
-
 class _CustomerFormState extends State<CustomerForm> {
   final _formKey = GlobalKey<FormState>();
 
@@ -33,17 +33,17 @@ class _CustomerFormState extends State<CustomerForm> {
 
   bool _isSaving = false;
 
-@override
-void initState() {
-  super.initState();
+  @override
+  void initState() {
+    super.initState();
 
-  _nameController.text = widget.initialName ?? '';
+    _nameController.text = widget.initialName ?? '';
 
-  _phoneController.text = widget.initialPhoneNumber ?? '';
+    _phoneController.text = widget.initialPhoneNumber ?? '';
 
-  _monthlySalesController.text =
-      (widget.initialMonthlySales ?? 0).toString();
-}
+    _monthlySalesController.text = (widget.initialMonthlySales ?? 0).toString();
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -127,8 +127,8 @@ void initState() {
             controller: _monthlySalesController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'Monthly Sales',
-              hintText: 'Optional',
+              labelText: 'Opening Load Sent (Rs)',
+              hintText: '0',
             ),
           ),
 

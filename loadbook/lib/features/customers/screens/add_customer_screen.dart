@@ -19,7 +19,6 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   @override
   void initState() {
     super.initState();
-
     controller = CustomerController(widget.database);
   }
 
@@ -32,7 +31,16 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Customer')),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            print("Back pressed");
+            Navigator.of(context).pop();
+          },
+        ),
+        title: const Text("Add Customer"),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: CustomerForm(
