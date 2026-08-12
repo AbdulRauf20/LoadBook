@@ -162,220 +162,244 @@ class _CustomerRowState extends State<CustomerRow> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Checkbox(
-                  value: isDone,
-                  onChanged: loadSent > 0
-                      ? (_) {
-                          if (!isDone) {
-                            _addPayment();
-                          }
+@override
+Widget build(BuildContext context) {
+  return Card(
+    margin: const EdgeInsets.only(bottom: 10),
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // --------------------------------------------------
+          // CUSTOMER HEADER
+          // --------------------------------------------------
+          Row(
+            children: [
+              Checkbox(
+                value: isDone,
+                onChanged: loadSent > 0
+                    ? (_) {
+                        if (!isDone) {
+                          _addPayment();
                         }
-                      : null,
-                ),
+                      }
+                    : null,
+              ),
 
-                Expanded(
-                  flex: 3,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: () async {
-                                final customer = await widget
-                                    .controller
-                                    .customerRepository
-                                    .getCustomerById(
-                                      widget.customerData.customerId,
-                                    );
-                                if (customer == null || !mounted) return;
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    final customer = await widget
+                        .controller
+                        .customerRepository
+                        .getCustomerById(
+                          widget.customerData.customerId,
+                        );
 
-                                final updated = await Navigator.push<bool>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => CustomerDetailsScreen(
-                                      database: widget.controller.database,
-                                      customer: customer,
-                                    ),
-                                  ),
-                                );
+                    if (customer == null || !mounted) return;
 
-                                if (updated == true && mounted) {
-                                  await widget.controller.loadDay(
-                                    widget.controller.selectedDate,
-                                  );
-                                }
-                              },
-                              child: Text(
-                                widget.customerData.customerName,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 4),
-
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    widget.customerData.phoneNumber,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                ),
-
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.message,
-                                    color: Colors.green,
-                                    size: 20,
-                                  ),
-                                  tooltip: 'Send WhatsApp Reminder',
-                                  onPressed: () {
-                                    whatsappService.sendReminder(
-                                      phone: widget.customerData.phoneNumber,
-                                      customerName:
-                                          widget.customerData.customerName,
-                                      remainingBalance: remaining,
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
+                    final updated = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CustomerDetailsScreen(
+                          database: widget.controller.database,
+                          customer: customer,
                         ),
                       ),
+                    );
 
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        tooltip: 'Deactivate Customer',
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (_) => AlertDialog(
-                              title: const Text('Deactivate Customer'),
-                              content: const Text(
-                                'This customer will no longer appear in the daily list.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text('Deactivate'),
-                                ),
-                              ],
-                            ),
-                          );
-
-                          if (confirm != true) return;
-
-                          await widget.controller.customerRepository
-                              .deactivateCustomer(
-                                widget.customerData.customerId,
-                              );
-
-                          await widget.controller.loadDay(
-                            widget.controller.selectedDate,
-                          );
-                        },
+                    if (updated == true && mounted) {
+                      await widget.controller.loadDay(
+                        widget.controller.selectedDate,
+                      );
+                    }
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.customerData.customerName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        widget.customerData.phoneNumber,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                Expanded(
-                  child: _AmountColumn(title: 'Sent', amount: loadSent),
+              ),
+
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: 'Deactivate Customer',
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Deactivate Customer'),
+                      content: const Text(
+                        'This customer will no longer appear in the daily list.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Deactivate'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm != true) return;
+
+                  await widget.controller.customerRepository
+                      .deactivateCustomer(
+                    widget.customerData.customerId,
+                  );
+
+                  await widget.controller.loadDay(
+                    widget.controller.selectedDate,
+                  );
+                },
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // --------------------------------------------------
+          // AMOUNTS
+          // --------------------------------------------------
+          Row(
+            children: [
+              Expanded(
+                child: _AmountColumn(
+                  title: 'Sent',
+                  amount: loadSent,
                 ),
+              ),
 
-                Expanded(
-                  child: _AmountColumn(title: 'Received', amount: received),
+              Expanded(
+                child: _AmountColumn(
+                  title: 'Received',
+                  amount: received,
                 ),
+              ),
 
-                Expanded(
-                  child: _AmountColumn(title: 'Remaining', amount: remaining),
+              Expanded(
+                child: _AmountColumn(
+                  title: 'Remaining',
+                  amount: remaining,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
 
-            const SizedBox(height: 10),
+          const SizedBox(height: 12),
 
-            Row(
+          // --------------------------------------------------
+          // LOAD BUTTONS
+          // --------------------------------------------------
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
                 const Text(
                   'Load:',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
 
                 const SizedBox(width: 8),
 
                 _QuickAmountButton(
                   amount: 5000,
-                  onPressed: isLoading ? null : () => _setLoadAmount(5000),
+                  onPressed: isLoading
+                      ? null
+                      : () => _setLoadAmount(5000),
                 ),
 
                 _QuickAmountButton(
                   amount: 10000,
-                  onPressed: isLoading ? null : () => _setLoadAmount(10000),
+                  onPressed: isLoading
+                      ? null
+                      : () => _setLoadAmount(10000),
                 ),
 
                 _QuickAmountButton(
                   amount: 15000,
-                  onPressed: isLoading ? null : () => _setLoadAmount(15000),
+                  onPressed: isLoading
+                      ? null
+                      : () => _setLoadAmount(15000),
                 ),
 
                 _QuickAmountButton(
                   amount: 20000,
-                  onPressed: isLoading ? null : () => _setLoadAmount(20000),
+                  onPressed: isLoading
+                      ? null
+                      : () => _setLoadAmount(20000),
                 ),
 
-                const Spacer(),
+                const SizedBox(width: 8),
 
                 OutlinedButton.icon(
                   onPressed: isLoading ? null : _addPayment,
-                  icon: const Icon(Icons.payments_outlined, size: 18),
+                  icon: const Icon(
+                    Icons.payments_outlined,
+                    size: 18,
+                  ),
                   label: const Text('Payment'),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _AmountColumn extends StatelessWidget {
   final String title;
   final int amount;
 
-  const _AmountColumn({required this.title, required this.amount});
+  const _AmountColumn({
+    required this.title,
+    required this.amount,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(fontSize: 12)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 12),
+        ),
         const SizedBox(height: 3),
         Text(
-          'Rs. ${amount.toString()}',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          'Rs. $amount',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -399,3 +423,4 @@ class _QuickAmountButton extends StatelessWidget {
     );
   }
 }
+
