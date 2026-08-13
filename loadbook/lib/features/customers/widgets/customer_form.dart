@@ -17,7 +17,7 @@ class CustomerForm extends StatefulWidget {
     required this.onSave,
     this.initialName,
     this.initialPhoneNumber,
-    this.initialMonthlySales,
+    this.initialMonthlySales, required int initialLoadSent,
   });
 
   @override

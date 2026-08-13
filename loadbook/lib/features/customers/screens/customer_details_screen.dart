@@ -56,7 +56,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
           initialName: widget.customer.name,
           initialPhoneNumber: widget.customer.phoneNumber,
           initialMonthlySales: widget.customer.monthlySales,
-          onSave: _updateCustomer,
+          onSave: _updateCustomer, initialLoadSent: 0,
         ),
       ),
     );

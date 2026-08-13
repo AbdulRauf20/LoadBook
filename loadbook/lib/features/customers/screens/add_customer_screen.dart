@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loadbook/features/daily/screens/daily_screen.dart';
 
 import '../../../data/local/database.dart';
 import '../controllers/customer_controller.dart';
@@ -35,8 +36,12 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            print("Back pressed");
-            Navigator.of(context).pop();
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => DailyScreen(database: widget.database),
+              ),
+              (route) => false,
+            );
           },
         ),
         title: const Text("Add Customer"),
@@ -77,7 +82,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 }
 
                 return success;
-              },
+              }, initialLoadSent: 0,
         ),
       ),
     );
