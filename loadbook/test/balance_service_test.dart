@@ -6,7 +6,6 @@ import 'package:loadbook/core/services/balance_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
   late LoadBookDatabase database;
   late BusinessSettingsRepository settingsRepository;
   late BalanceService balanceService;
