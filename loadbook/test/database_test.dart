@@ -38,8 +38,14 @@ void main() {
       monthlySales: 350000,
     );
 
+    final raufId = await customerRepository.addCustomer(
+      name: 'Rauf Mobile',
+      phoneNumber: '03007654320',
+      monthlySales: 1000,
+    );
     expect(aliId, greaterThan(0));
     expect(bilalId, greaterThan(0));
+      expect(raufId, greaterThan(0));
 
     // --------------------------------------------------
     // 2. VERIFY CUSTOMERS
