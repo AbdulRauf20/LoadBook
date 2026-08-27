@@ -17,7 +17,7 @@ class CustomerForm extends StatefulWidget {
     required this.onSave,
     this.initialName,
     this.initialPhoneNumber,
-    this.initialMonthlySales, required int initialLoadSent,
+    this.initialMonthlySales,
   });
 
   @override
@@ -127,7 +127,7 @@ class _CustomerFormState extends State<CustomerForm> {
             controller: _monthlySalesController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'Opening Load Sent (Rs)',
+              labelText: 'Monthly Sales (Rs)',
               hintText: '0',
             ),
           ),

@@ -40,6 +40,13 @@ class PaymentRepository {
     return payments.fold<int>(0, (total, payment) => total + payment.amount);
   }
 
+  Future<void> deletePaymentsForTransaction(int dailyTransactionId) {
+    return (database.delete(database.payments)..where(
+          (payment) => payment.dailyTransactionId.equals(dailyTransactionId),
+        ))
+        .go();
+  }
+
   Future<int> getTotalReceivedForCustomer(int customerId) async {
     final transactions = await (database.select(
       database.dailyTransactions,

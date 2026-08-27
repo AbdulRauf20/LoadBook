@@ -2,12 +2,18 @@ import 'package:flutter/foundation.dart';
 
 import '../../../data/local/database.dart';
 import '../../../data/repositories/customer_repository.dart';
+import '../../../data/repositories/payment_repository.dart';
+import '../../../data/repositories/transaction_repository.dart';
 
 class CustomerController extends ChangeNotifier {
   final CustomerRepository repository;
+  final TransactionRepository transactionRepository;
+  final PaymentRepository paymentRepository;
 
   CustomerController(LoadBookDatabase database)
-    : repository = CustomerRepository(database);
+    : repository = CustomerRepository(database),
+      transactionRepository = TransactionRepository(database),
+      paymentRepository = PaymentRepository(database);
 
   List<Customer> customers = [];
 
@@ -52,6 +58,57 @@ class CustomerController extends ChangeNotifier {
         phoneNumber: phoneNumber.trim(),
         monthlySales: monthlySales,
       );
+
+      await loadCustomers();
+
+      return true;
+    } catch (error) {
+      errorMessage = error.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Sum of load sent for this customer within the current calendar month.
+  Future<int> currentMonthLoad(int id) async {
+    final now = DateTime.now();
+
+    final transactions = await transactionRepository.getTransactionsForCustomer(
+      id,
+    );
+
+    return transactions
+        .where(
+          (t) =>
+              t.transactionDate.year == now.year &&
+              t.transactionDate.month == now.month,
+        )
+        .fold<int>(0, (sum, t) => sum + t.loadSent);
+  }
+
+  /// Removes all transactional/test data for a customer while keeping the
+  /// customer account (name, phone) intact. Also clears manual monthly sales.
+  Future<bool> resetCustomerData(int id) async {
+    try {
+      final transactions = await transactionRepository
+          .getTransactionsForCustomer(id);
+
+      for (final transaction in transactions) {
+        await paymentRepository.deletePaymentsForTransaction(transaction.id);
+      }
+
+      await transactionRepository.deleteTransactionsForCustomer(id);
+
+      final customer = await repository.getCustomerById(id);
+
+      if (customer != null) {
+        await repository.updateCustomer(
+          id: id,
+          name: customer.name,
+          phoneNumber: customer.phoneNumber,
+          monthlySales: 0,
+        );
+      }
 
       await loadCustomers();
 

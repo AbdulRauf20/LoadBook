@@ -33,6 +33,10 @@ class DailyController extends ChangeNotifier {
 
   String? errorMessage;
 
+  /// Customers who still owe money for the selected day.
+  List<CustomerDailyData> get remainingCustomers =>
+      customerDailyData.where((data) => data.remaining > 0).toList();
+
   Future<void> loadDay(DateTime date) async {
     selectedDate = DateTime(date.year, date.month, date.day);
 

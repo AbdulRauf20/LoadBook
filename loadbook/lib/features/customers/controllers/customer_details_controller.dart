@@ -19,6 +19,9 @@ class CustomerDetailsController extends ChangeNotifier {
 
   List<DailyTransaction> transactions = [];
 
+  /// Received amount per daily transaction id.
+  Map<int, int> receivedByTransaction = {};
+
   int totalReceived = 0;
 
   bool isLoading = false;
@@ -33,12 +36,27 @@ class CustomerDetailsController extends ChangeNotifier {
       customerId,
     );
 
-    totalReceived = await paymentRepository.getTotalReceivedForCustomer(
-      customerId,
-    );
+    final received = <int, int>{};
+    var total = 0;
+
+    for (final transaction in transactions) {
+      final amount = await paymentRepository.getTotalReceived(transaction.id);
+      received[transaction.id] = amount;
+      total += amount;
+    }
+
+    receivedByTransaction = received;
+    totalReceived = total;
 
     isLoading = false;
     notifyListeners();
+  }
+
+  int receivedFor(int transactionId) => receivedByTransaction[transactionId] ?? 0;
+
+  int remainingFor(DailyTransaction transaction) {
+    final value = transaction.loadSent - receivedFor(transaction.id);
+    return value < 0 ? 0 : value;
   }
 
   int get totalLoadSent =>

@@ -55,6 +55,9 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 required phoneNumber,
                 required monthlySales,
               }) async {
+                final messenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
+
                 final success = await controller.addCustomer(
                   name: name,
                   phoneNumber: phoneNumber,
@@ -64,15 +67,15 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 if (!mounted) return success;
 
                 if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Customer added successfully'),
                     ),
                   );
 
-                  Navigator.pop(context, true);
+                  navigator.pop(true);
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text(
                         controller.errorMessage ?? 'Unable to add customer.',
@@ -82,7 +85,7 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                 }
 
                 return success;
-              }, initialLoadSent: 0,
+              },
         ),
       ),
     );

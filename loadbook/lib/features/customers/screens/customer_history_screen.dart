@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../data/local/database.dart';
 import '../controllers/customer_details_controller.dart';
@@ -56,71 +57,214 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen> {
       return const Scaffold(body: Center(child: Text('Customer not found')));
     }
 
+    final remaining = controller.remaining < 0 ? 0 : controller.remaining;
+
     return Scaffold(
       appBar: AppBar(title: Text(customer.name)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
-              child: ListTile(
-                title: Text(customer.phoneNumber),
-                subtitle: const Text('Phone Number'),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    const Icon(Icons.phone, size: 18, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Text(
+                      customer.phoneNumber,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
-            Card(
-              child: ListTile(
-                title: Text('Rs. ${controller.totalLoadSent}'),
-                subtitle: const Text('Total Load Sent'),
-              ),
-            ),
+            const SizedBox(height: 10),
 
-            Card(
-              child: ListTile(
-                title: Text('Rs. ${controller.totalReceived}'),
-                subtitle: const Text('Total Received'),
-              ),
-            ),
-
-            Card(
-              child: ListTile(
-                title: Text('Rs. ${controller.remaining}'),
-                subtitle: const Text('Remaining Balance'),
-              ),
+            Row(
+              children: [
+                _StatCard(
+                  label: 'Load Sent',
+                  amount: controller.totalLoadSent,
+                  color: const Color(0xFF37474F),
+                ),
+                const SizedBox(width: 8),
+                _StatCard(
+                  label: 'Received',
+                  amount: controller.totalReceived,
+                  color: const Color(0xFF2E7D32),
+                ),
+                const SizedBox(width: 8),
+                _StatCard(
+                  label: 'Remaining',
+                  amount: remaining,
+                  color: remaining > 0
+                      ? const Color(0xFFC62828)
+                      : const Color(0xFF2E7D32),
+                ),
+              ],
             ),
 
             const SizedBox(height: 16),
 
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Transaction History',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+            const Text(
+              'Transaction History',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 8),
 
             Expanded(
-              child: ListView.builder(
-                itemCount: controller.transactions.length,
-                itemBuilder: (context, index) {
-                  final transaction = controller.transactions[index];
+              child: controller.transactions.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No transactions yet.',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: controller.transactions.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final transaction = controller.transactions[index];
+                        final received = controller.receivedFor(transaction.id);
+                        final txRemaining = controller.remainingFor(transaction);
 
-                  return ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: Text('Rs. ${transaction.loadSent}'),
-                    subtitle: Text(
-                      transaction.transactionDate.toString().split(' ').first,
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.calendar_today,
+                                      size: 15,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      DateFormat(
+                                        'dd MMM yyyy',
+                                      ).format(transaction.transactionDate),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _MiniStat(
+                                      label: 'Sent',
+                                      amount: transaction.loadSent,
+                                    ),
+                                    _MiniStat(
+                                      label: 'Received',
+                                      amount: received,
+                                      color: const Color(0xFF2E7D32),
+                                    ),
+                                    _MiniStat(
+                                      label: 'Remaining',
+                                      amount: txRemaining,
+                                      color: txRemaining > 0
+                                          ? const Color(0xFFC62828)
+                                          : const Color(0xFF2E7D32),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final int amount;
+  final Color color;
+
+  const _StatCard({
+    required this.label,
+    required this.amount,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+          child: Column(
+            children: [
+              Text(
+                label,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 4),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Rs. $amount',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  final String label;
+  final int amount;
+  final Color? color;
+
+  const _MiniStat({required this.label, required this.amount, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Colors.grey),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Rs. $amount',
+          style: TextStyle(fontWeight: FontWeight.w600, color: color),
+        ),
+      ],
     );
   }
 }

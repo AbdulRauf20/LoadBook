@@ -213,6 +213,20 @@ class _CustomerRowState extends State<CustomerRow> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _sendWhatsApp() async {
+    try {
+      await whatsappService.sendReminder(
+        phone: widget.customerData.phoneNumber,
+        customerName: widget.customerData.customerName,
+        remainingBalance: remaining,
+      );
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Could not open WhatsApp.');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -227,11 +241,26 @@ class _CustomerRowState extends State<CustomerRow> {
             // --------------------------------------------------
             Row(
               children: [
-                Checkbox(value: isDone, onChanged: null),
+                Tooltip(
+                  message: isDone ? 'Paid' : 'Pending',
+                  child: Icon(
+                    isDone
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: isDone
+                        ? const Color(0xFF2E7D32)
+                        : const Color(0xFFBDBDBD),
+                    size: 26,
+                  ),
+                ),
+
+                const SizedBox(width: 8),
 
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
+                      final navigator = Navigator.of(context);
+
                       final customer = await widget
                           .controller
                           .customerRepository
@@ -239,8 +268,7 @@ class _CustomerRowState extends State<CustomerRow> {
 
                       if (customer == null || !mounted) return;
 
-                      final updated = await Navigator.push<bool>(
-                        context,
+                      final updated = await navigator.push<bool>(
                         MaterialPageRoute(
                           builder: (_) => CustomerDetailsScreen(
                             database: widget.controller.database,
@@ -278,6 +306,12 @@ class _CustomerRowState extends State<CustomerRow> {
                       ],
                     ),
                   ),
+                ),
+
+                IconButton(
+                  icon: const Icon(Icons.chat, color: Color(0xFF25D366)),
+                  tooltip: 'Send WhatsApp Reminder',
+                  onPressed: _sendWhatsApp,
                 ),
 
                 IconButton(
@@ -331,16 +365,27 @@ class _CustomerRowState extends State<CustomerRow> {
                       title: 'Sent',
                       amount: loadSent,
                       editable: true,
+                      valueColor: const Color(0xFF37474F),
                     ),
                   ),
                 ),
 
                 Expanded(
-                  child: _AmountColumn(title: 'Received', amount: received),
+                  child: _AmountColumn(
+                    title: 'Received',
+                    amount: received,
+                    valueColor: const Color(0xFF2E7D32),
+                  ),
                 ),
 
                 Expanded(
-                  child: _AmountColumn(title: 'Remaining', amount: remaining),
+                  child: _AmountColumn(
+                    title: 'Remaining',
+                    amount: remaining,
+                    valueColor: remaining > 0
+                        ? const Color(0xFFC62828)
+                        : const Color(0xFF2E7D32),
+                  ),
                 ),
               ],
             ),
@@ -401,32 +446,40 @@ class _AmountColumn extends StatelessWidget {
   final String title;
   final int amount;
   final bool editable;
+  final Color? valueColor;
 
   const _AmountColumn({
     required this.title,
     required this.amount,
     this.editable = false,
+    this.valueColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(fontSize: 12)),
+        Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 3),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Rs. $amount',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            if (editable) ...[
-              const SizedBox(width: 3),
-              const Icon(Icons.edit_outlined, size: 13),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Rs. $amount',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: valueColor,
+                ),
+              ),
+              if (editable) ...[
+                const SizedBox(width: 3),
+                Icon(Icons.edit_outlined, size: 13, color: valueColor),
+              ],
             ],
-          ],
+          ),
         ),
       ],
     );

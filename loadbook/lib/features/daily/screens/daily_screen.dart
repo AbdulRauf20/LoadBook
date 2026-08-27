@@ -7,6 +7,7 @@ import '../../../data/local/database.dart';
 import '../controllers/daily_controller.dart';
 import '../widgets/daily_header.dart';
 import '../widgets/summary_cards.dart';
+import '../widgets/remaining_clients_bar.dart';
 import '../widgets/customer_table.dart';
 
 class DailyScreen extends StatefulWidget {
@@ -101,6 +102,8 @@ class _DailyScreenState extends State<DailyScreen> {
               openingBalance: controller.openingBalance,
               closingBalance: controller.closingBalance,
             ),
+
+            RemainingClientsBar(controller: controller),
 
             Expanded(child: CustomerTable(controller: controller)),
           ],

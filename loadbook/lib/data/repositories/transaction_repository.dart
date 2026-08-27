@@ -64,6 +64,12 @@ class TransactionRepository {
         .get();
   }
 
+  Future<void> deleteTransactionsForCustomer(int customerId) {
+    return (database.delete(database.dailyTransactions)
+          ..where((transaction) => transaction.customerId.equals(customerId)))
+        .go();
+  }
+
   Future<List<DailyTransaction>> getTransactionsForCustomer(int customerId) {
     return (database.select(database.dailyTransactions)
           ..where((t) => t.customerId.equals(customerId))
